@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta chartset="UTF-8">
+
+        <title>Empleados</title>
+
+        <link rel="stylesheet" href="/css/estilos.css">
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    </head>
+    <body>
+        <header class="bg-dark text-white py-4">
+            <div class="container">
+                <h1 class="h3 mb-1">Empresa</h1>
+                <p class="mb-3 text-white-50">Registro de empleados</p>
+            </div>
+        </header>
+        <main class="container py-5">
+            <div class="justify-content-between align-items-center mb-4">
+                <h2 class="h4 mb-3">Listado de empleados</h2>
+
+                <div class="card border-1 shadow-sm p-3">
+                    <div class="card-body p-0">
+                        <% if (empleados.length > 0) { %>
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nombre</th>
+                                        <th>Cargo</th>
+                                        <th>Sueldo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% empleados.forEach(empleado => { %>
+                                        <tr>
+                                            <td><%= empleado.id %></td>
+                                            <td><%= empleado.nombre %></td>
+                                            <td><%= empleado.cargo %></td>
+                                            <td><%= empleado.sueldo %></td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                        
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </main>
+              
+    </body>
+</html>

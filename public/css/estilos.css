@@ -1,0 +1,13 @@
+body {
+    min-height: 100vh;
+    background-color: aliceblue;
+}
+
+header {
+    border-bottom: 4px solid;
+}
+
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+}
