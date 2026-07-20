@@ -17,38 +17,91 @@
             </div>
         </header>
         <main class="container py-5">
-            <div class="justify-content-between align-items-center mb-4">
-                <h2 class="h4 mb-3">Listado de empleados</h2>
+            <% if (mensaje) { %>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    <%= mensaje %>
+                    <button type="button" class="btn-close" data-bd-dismiss="alert"></button>
+                </div>
+            <% } %>
+            
+            <% if (error) { %>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <%= error %>
+                    <button type="button" class="btn-close" data-bd-dismiss="alert"></button>
+                </div>
+            <% } %>
 
-                <div class="card border-1 shadow-sm p-3">
-                    <div class="card-body p-0">
-                        <% if (empleados.length > 0) { %>
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Nombre</th>
-                                        <th>Cargo</th>
-                                        <th>Sueldo</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <% empleados.forEach(empleado => { %>
-                                        <tr>
-                                            <td><%= empleado.id %></td>
-                                            <td><%= empleado.nombre %></td>
-                                            <td><%= empleado.cargo %></td>
-                                            <td><%= empleado.sueldo %></td>
-                                        </tr>
-                                    <% }); %>
-                                </tbody>
-                        
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <h2 class="h5 mb-1">Registrar empleado</h2>
+                            <p class="text-secondary small mb-4">Ingrese los datos del empleado</p>
+
+                            <form action="/empleados" method="post">
+                                <div class="mb-3">
+                                    <label for="nombre" class="form-label">Nombre</label>
+                                    <input type="text" id="nombre" name="nombre" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="cargo" class="form-label">Cargo</label>
+                                    <input type="text" id="cargo" name="cargo" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="sueldo" class="form-label">Sueldo</label>
+                                    <input type="number" id="sueldo" name="sueldo" class="form-control" min="1" required>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">Registrar empleado</button>
+                            </form>
+                        </div>
+                    </div>                    
+                </div>
+                <div class="col-lg-8">
+                    <div class="justify-content-between align-items-center mb-4">
+                        <h2 class="h4 mb-3">Listado de empleados</h2>
+
+                        <div class="card border-1 shadow-sm p-3">
+                            <div class="card-body p-0">
+                                <% if (empleados.length > 0) { %>
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Nombre</th>
+                                                <th>Cargo</th>
+                                                <th>Sueldo</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <% empleados.forEach(empleado => { %>
+                                                <tr>
+                                                    <td><%= empleado.id %></td>
+                                                    <td><%= empleado.nombre %></td>
+                                                    <td><%= empleado.cargo %></td>
+                                                    <td><%= empleado.sueldo %></td>
+                                                    <td>
+                                                        <div class="d-flex justify-content-center gap-2">
+                                                            <a href="/empleados/editar/<%= empleado.id %>" class="btn btn-sm">Editar</a>
+
+                                                            <form action="/empleados/eliminar/<%= empleado.id %>" method="post" onsubmit="return confirm('¿Está seguro que desea eliminar el registro?')">
+                                                                <button type="submit" class="btn btn-sm">Eliminar</button>
+                                                            </form>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            <% }); %>
+                                        </tbody>                                
+                                    </div>
+                                <% } %>
                             </div>
-                        <% } %>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </main>
-              
+            </div>            
+        </main>              
     </body>
 </html>
