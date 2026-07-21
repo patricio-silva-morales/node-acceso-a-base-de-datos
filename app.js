@@ -165,6 +165,100 @@ app.post("/empleados/eliminar/:id", async(req, res) => {
     }
 });
 
+app.get("/consulta", async(req, res) => {
+    try{
+        const consulta = {
+            text: `
+                    SELECT id, nombre, cargo, sueldo
+                    FROM empleados
+                    ORDER BY id    
+                `,
+            values: []
+        };
+
+        const resultado = await pool.query(consulta);
+
+        res.render('consulta', {
+            empleados: resultado.rows,
+            cargo: '',
+            sueldoMinimo: '',
+            mensaje: ''
+        });
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).render('consulta', {
+                empleados: [],
+                cargo: '',
+                sueldoMinimo: '',
+                mensaje: 'No se pudo obtener la lista de empleados'
+            }
+        );
+    }
+});
+
+app.post("/consulta", async(req, res) => {
+    const cargo = req.body.cargo?.trim() || '';
+    const sueldoMinimo = req.body.sueldoMinimo?.trim() || '';
+
+    try {
+        let textoConsulta = `
+            SELECT id, nombre, cargo, sueldo
+            FROM empleados
+            WHERE 1=1 
+        `;
+
+        const valores = [];
+
+        if (cargo !== '') {
+            valores.push(`${cargo}%`);
+            textoConsulta += ` AND cargo ILIKE $${valores.length}`;
+        }
+
+        if (sueldoMinimo !== '') {
+            const sueldo = Number(sueldoMinimo);
+
+            if (!Number.isInteger(sueldo) || sueldo < 0){
+                return res.status(400).render('consulta', {
+                    empleados: [],
+                    cargo,
+                    sueldoMinimo,
+                    mensaje: 'El sueldo mínimo debe ser un número entero positivo'
+                });
+            }
+            
+            valores.push(sueldo);
+            textoConsulta += ` AND sueldo >= $${valores.length}`;
+                       
+        }
+        textoConsulta += ' ORDER BY sueldo DESC';
+        
+        const consulta = {
+            text: textoConsulta,
+            values: valores
+        }
+
+        const resultado = await pool.query(consulta);
+
+        res.render('consulta', {
+            empleados: resultado.rows,
+            cargo,
+            sueldoMinimo,
+            mensaje: resultado.rowCount === 0 ? "No se encontraron registros" : ''
+        });
+    }
+    catch(error){
+        console.log(error);
+        res.status(500).render('consulta', {
+                empleados: [],
+                cargo: '',
+                sueldoMinimo: '',
+                mensaje: 'No se pudo obtener la lista de empleados'
+            }
+        );
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor funcionando en http://localhost:${PORT}`);
 });
