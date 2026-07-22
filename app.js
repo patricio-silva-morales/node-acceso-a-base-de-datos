@@ -289,6 +289,81 @@ app.get('/asistencias', async (req, res) => {
     }
 });
 
+app.get('/consulta-asistencias', (req, res) => {
+    res.render('consulta_asistencias_con_filtro', {
+        asistencias: [],
+        nombre: '',
+        fecha: '',
+        mensaje: ''
+    });
+});
+
+app.post('/consulta-asistencias', async (req, res) => {
+    const nombre = req.body.nombre?.trim() || '';
+    const fecha = req.body.fecha || '';
+
+    try {
+        let textoConsulta = `
+            SELECT
+                asistencias.id,
+                empleados.nombre,
+                asistencias.fecha,
+                asistencias.presente
+            FROM asistencias
+            INNER JOIN empleados
+                ON asistencias.empleado_id = empleados.id
+            WHERE 1 = 1
+        `;
+
+        const valores = [];
+
+        if (nombre !== '') {
+            valores.push(`%${nombre}%`);
+            textoConsulta += `
+                AND empleados.nombre ILIKE $${valores.length}
+            `;
+        }
+
+        if (fecha !== '') {
+            valores.push(fecha);
+            textoConsulta += `
+                AND asistencias.fecha = $${valores.length}
+            `;
+        }
+
+        textoConsulta += `
+            ORDER BY asistencias.fecha, empleados.nombre
+        `;
+
+        const consulta = {
+            text: textoConsulta,
+            values: valores
+        };
+
+        const resultado = await pool.query(consulta);
+
+        res.render('consulta_asistencias_con_filtro', {
+            asistencias: resultado.rows,
+            nombre,
+            fecha,
+            mensaje:
+                resultado.rows.length === 0
+                    ? 'No se encontraron registros de asistencia.'
+                    : ''
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).render('consulta_asistencias_con_filtro', {
+            asistencias: [],
+            nombre,
+            fecha,
+            mensaje: 'Ocurrió un error al realizar la consulta.'
+        });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor funcionando en http://localhost:${PORT}`);
 });
