@@ -364,6 +364,122 @@ app.post('/consulta-asistencias', async (req, res) => {
     }
 });
 
+app.get('/registrar-asistencia', async (req, res) => {
+    try {
+        const consulta = {
+            text: `
+                SELECT id, nombre
+                FROM empleados
+                ORDER BY nombre
+            `,
+            values: []
+        };
+
+        const resultado = await pool.query(consulta);
+
+        res.render('registrar_asistencia', {
+            empleados: resultado.rows,
+            mensaje: '',
+            tipoMensaje: ''
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error al cargar los empleados');
+    }
+});
+
+app.post('/registrar-asistencia', async (req, res) => {
+    const empleadoId = Number(req.body.empleado_id);
+    const fecha = req.body.fecha;
+    const presente = req.body.presente === 'true';
+
+    const cliente = await pool.connect();
+
+    try {
+        await cliente.query('BEGIN');
+
+        const consultaEmpleado = {
+            text: `
+                SELECT id
+                FROM empleados
+                WHERE id = $1
+            `,
+            values: [empleadoId]
+        };
+
+        const resultadoEmpleado = await cliente.query(consultaEmpleado);
+
+        if (resultadoEmpleado.rowCount === 0) {
+            throw new Error('El empleado no existe');
+        }
+
+        const insertarAsistencia = {
+            text: `
+                INSERT INTO asistencias (
+                    empleado_id,
+                    fecha,
+                    presente
+                )
+                VALUES ($1, $2, $3)
+            `,
+            values: [empleadoId, fecha, presente]
+        };
+
+        await cliente.query(insertarAsistencia);
+
+        if (presente) {
+            const actualizarEmpleado = {
+                text: `
+                    UPDATE empleados
+                    SET total_asistencias = total_asistencias + 1
+                    WHERE id = $1
+                `,
+                values: [empleadoId]
+            };
+
+            await cliente.query(actualizarEmpleado);
+        }
+
+        await cliente.query('COMMIT');
+
+        const resultadoEmpleados = await pool.query({
+            text: `
+                SELECT id, nombre
+                FROM empleados
+                ORDER BY nombre
+            `,
+            values: []
+        });
+
+        res.render('registrar_asistencia', {
+            empleados: resultadoEmpleados.rows,
+            mensaje: 'Asistencia registrada correctamente.',
+            tipoMensaje: 'success'
+        });
+    } catch (error) {
+        await cliente.query('ROLLBACK');
+
+        console.error(error);
+
+        const resultadoEmpleados = await pool.query({
+            text: `
+                SELECT id, nombre
+                FROM empleados
+                ORDER BY nombre
+            `,
+            values: []
+        });
+
+        res.status(400).render('registrar_asistencia', {
+            empleados: resultadoEmpleados.rows,
+            mensaje: error.message,
+            tipoMensaje: 'danger'
+        });
+    } finally {
+        cliente.release();
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor funcionando en http://localhost:${PORT}`);
 });
