@@ -259,6 +259,36 @@ app.post("/consulta", async(req, res) => {
     }
 });
 
+app.get('/asistencias', async (req, res) => {
+    try {
+        const consulta = {
+            text: `
+                SELECT 
+                    asistencias.id,
+                    empleados.nombre,
+                    asistencias.fecha,
+                    asistencias.presente
+                FROM asistencias
+                INNER JOIN empleados
+                    ON asistencias.empleado_id = empleados.id
+                ORDER BY asistencias.fecha, empleados.nombre
+            `,
+            values: []
+        };
+
+        const resultado = await pool.query(consulta);
+
+        res.render('asistencias', {
+            asistencias: resultado.rows
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).send('Error al consultar las asistencias');
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor funcionando en http://localhost:${PORT}`);
 });
